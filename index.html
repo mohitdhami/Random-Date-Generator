@@ -1,61 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Date Generator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background-color: #f2f2f2;
-        }
-        #dateDisplay {
-            font-size: 24px;
-            margin-top: 20px;
-            color: #333;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 18px;
-            cursor: pointer;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Date Generator</title>
+
+  <style>
+    /* Apply animated gradient background to body */
+    body {
+      margin: 0;
+      padding: 50px;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(-45deg, #1e3c72, #2a5298, #1e3c72, #16324f);
+      background-size: 400% 400%;
+      animation: gradientMotion 15s ease infinite;
+    }
+
+    /* Define keyframes for smooth gradient shift */
+    @keyframes gradientMotion {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #ffffff;
+      color: #007BFF;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #e0e0e0;
+    }
+
+    #dateDisplay {
+      font-size: 24px;
+      margin-top: 20px;
+      color: #ffffff;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>Random Date Generator</h1>
-    <p>Click the button to generate a random date between <strong>24 February 2025</strong> and <strong>today</strong>.</p>
-    <button onclick="generateDate()">Generate Random Date</button>
-    <div id="dateDisplay"></div>
+  <h1>Random Date Generator</h1>
+  <p>Click the button to generate a random date between <strong>24 February 2025</strong> and <strong>today</strong>.</p>
 
-    <script>
-        function generateDate() {
-            const start = new Date(2025, 1, 24); // Month is 0-indexed
-            const end = new Date();
+  <button onclick="generateDate()">Generate Random Date</button>
 
-            const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
-            const randomDate = new Date(randomTime);
+  <div id="dateDisplay" title="Click to copy date"></div>
 
-            const day = String(randomDate.getDate()).padStart(2, '0');
-            const monthNames = [
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            ];
-            const monthName = monthNames[randomDate.getMonth()];
-            const year = randomDate.getFullYear();
+  <script>
+    function generateDate() {
+      const start = new Date(2025, 1, 24); // 24 Feb 2025
+      const end = new Date(); // Today's date
 
-            document.getElementById("dateDisplay").textContent = `${day} ${monthName} ${year}`;
-        }
-    </script>
+      const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+      const randomDate = new Date(randomTime);
+
+      const day = String(randomDate.getDate()).padStart(2, '0');
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      const monthName = monthNames[randomDate.getMonth()];
+      const year = randomDate.getFullYear();
+
+      const formattedDate = `${day} ${monthName} ${year}`;
+      const dateDisplay = document.getElementById("dateDisplay");
+      dateDisplay.textContent = formattedDate;
+
+      // Copy to clipboard silently on click
+      dateDisplay.onclick = () => {
+        navigator.clipboard.writeText(formattedDate).catch(() => {});
+      };
+    }
+  </script>
 
 </body>
 </html>
