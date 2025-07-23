@@ -1,93 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Random Date Generator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Date Generator</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #0a0a0a;
+            color: #fff;
+        }
 
-  <style>
-    /* Apply animated gradient background to body */
-    body {
-      margin: 0;
-      padding: 50px;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      color: #fff;
-      background: linear-gradient(-45deg, #1e3c72, #2a5298, #1e3c72, #16324f);
-      background-size: 400% 400%;
-      animation: gradientMotion 15s ease infinite;
-    }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            display: block;
+        }
 
-    /* Define keyframes for smooth gradient shift */
-    @keyframes gradientMotion {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
-    }
+        .content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
 
-    button {
-      padding: 10px 20px;
-      font-size: 18px;
-      cursor: pointer;
-      background-color: #ffffff;
-      color: #007BFF;
-      border: none;
-      border-radius: 5px;
-    }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+        }
 
-    button:hover {
-      background-color: #e0e0e0;
-    }
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            line-height: 1.5;
+        }
 
-    #dateDisplay {
-      font-size: 24px;
-      margin-top: 20px;
-      color: #ffffff;
-      cursor: pointer;
-    }
-  </style>
+        #dateDisplay {
+            font-size: 2rem;
+            margin: 2rem 0;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 150, 255, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 300px;
+        }
+
+        #dateDisplay:hover {
+            background: rgba(0, 150, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            background: linear-gradient(135deg, #007BFF, #00BFFF);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        button:hover::after {
+            transform: translateX(100%);
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+            #dateDisplay {
+                font-size: 1.5rem;
+                min-width: 250px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <h1>Random Date Generator</h1>
-  <p>Click the button to generate a random date between <strong>24 February 2025</strong> and <strong>today</strong>.</p>
+<canvas id="waves"></canvas>
+<div class="particles" id="particles"></div>
 
-  <button onclick="generateDate()">Generate Random Date</button>
+<div class="content">
+    <h1>Random Date Generator</h1>
+    <p>Click the button to generate a random date between <strong>24 February 2025</strong> and <strong>today</strong>.</p>
+    <button onclick="generateDate()">Generate Random Date</button>
+    <div id="dateDisplay" onclick="copyDate()">Date will appear here</div>
+</div>
 
-  <div id="dateDisplay" title="Click to copy date"></div>
+<script>
+    // Enhanced Wave Animation
+    const canvas = document.getElementById('waves');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
 
-  <script>
-    function generateDate() {
-      const start = new Date(2025, 1, 24); // 24 Feb 2025
-      const end = new Date(); // Today's date
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    });
 
-      const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
-      const randomDate = new Date(randomTime);
-
-      const day = String(randomDate.getDate()).padStart(2, '0');
-      const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-      ];
-      const monthName = monthNames[randomDate.getMonth()];
-      const year = randomDate.getFullYear();
-
-      const formattedDate = `${day} ${monthName} ${year}`;
-      const dateDisplay = document.getElementById("dateDisplay");
-      dateDisplay.textContent = formattedDate;
-
-      // Copy to clipboard silently on click
-      dateDisplay.onclick = () => {
-        navigator.clipboard.writeText(formattedDate).catch(() => {});
-      };
+    class Wave {
+        constructor(amplitude, frequency, color, speed, yOffset) {
+            this.amplitude = amplitude;
+            this.frequency = frequency;
+            this.color = color;
+            this.speed = speed;
+            this.yOffset = yOffset;
+            this.time = 0;
+        }
+        
+        update() {
+            this.time += this.speed;
+        }
+        
+        draw(ctx, width, height) {
+            ctx.beginPath();
+            for (let x = 0; x <= width; x += 2) {
+                const y = height * this.yOffset + 
+                         Math.sin(x * this.frequency + this.time) * this.amplitude * 
+                         Math.sin(this.time * 0.1);
+                ctx.lineTo(x, y);
+            }
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
     }
-  </script>
+
+    const waves = [
+        new Wave(40, 0.008, 'rgba(0, 100, 255, 0.4)', 0.02, 0.6),
+        new Wave(30, 0.01, 'rgba(0, 150, 255, 0.3)', 0.03, 0.7),
+        new Wave(20, 0.015, 'rgba(0, 200, 255, 0.2)', 0.04, 0.8)
+    ];
+
+    function animateWaves() {
+        ctx.clearRect(0, 0, width, height);
+        
+        // Draw gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, '#001a33');
+        gradient.addColorStop(1, '#000000');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        
+        // Update and draw waves
+        waves.forEach(wave => {
+            wave.update();
+            wave.draw(ctx, width, height);
+        });
+        
+        requestAnimationFrame(animateWaves);
+    }
+
+    animateWaves();
+
+    // Particles animation
+    const particlesContainer = document.getElementById('particles');
+    const particles = [];
+    const particleCount = window.innerWidth < 768 ? 30 : 50;
+
+    class Particle {
+        constructor() {
+            this.reset();
+            this.y = Math.random() * window.innerHeight;
+        }
+        
+        reset() {
+            this.x = Math.random() * window.innerWidth;
+            this.y = -20;
+            this.size = Math.random() * 3 + 1;
+            this.speed = Math.random() * 1 + 0.5;
+            this.opacity = Math.random() * 0.4 + 0.1;
+        }
+        
+        update() {
+            this.y += this.speed;
+            if (this.y > window.innerHeight) {
+                this.reset();
+            }
+        }
+        
+        draw(ctx) {
+            ctx.fillStyle = `rgba(100, 200, 255, ${this.opacity})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    const particlesCtx = particlesContainer.getContext('2d');
+    particlesContainer.width = window.innerWidth;
+    particlesContainer.height = window.innerHeight;
+
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    function animateParticles() {
+        particlesCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        
+        particles.forEach(particle => {
+            particle.update();
+            particle.draw(particlesCtx);
+        });
+        
+        requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+
+    window.addEventListener('resize', () => {
+        particlesContainer.width = window.innerWidth;
+        particlesContainer.height = window.innerHeight;
+    });
+
+    // Date generation and clipboard functions
+    function generateDate() {
+        const start = new Date(2025, 1, 24); // February 24, 2025
+        const end = new Date();
+        const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+        const randomDate = new Date(randomTime);
+
+        const day = String(randomDate.getDate()).padStart(2, '0');
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        const monthName = monthNames[randomDate.getMonth()];
+        const year = randomDate.getFullYear();
+
+        const finalDate = `${day} ${monthName} ${year}`;
+        const dateDisplay = document.getElementById("dateDisplay");
+        dateDisplay.textContent = finalDate;
+
+        // Add visual feedback for generation
+        dateDisplay.style.transform = "scale(1.1)";
+        dateDisplay.style.boxShadow = "0 0 20px rgba(0, 150, 255, 0.5)";
+        setTimeout(() => {
+            dateDisplay.style.transform = "scale(1)";
+            dateDisplay.style.boxShadow = "none";
+        }, 300);
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(finalDate).catch(err => console.error('Copy failed', err));
+    }
+
+    function copyDate() {
+        const text = document.getElementById("dateDisplay").textContent;
+        if (text && text !== "Date will appear here") {
+            // Visual feedback for copy
+            const dateDisplay = document.getElementById("dateDisplay");
+            dateDisplay.style.backgroundColor = "rgba(0, 150, 255, 0.2)";
+            setTimeout(() => {
+                dateDisplay.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+            }, 200);
+            
+            navigator.clipboard.writeText(text).catch(err => console.error('Copy failed', err));
+        }
+    }
+</script>
 
 </body>
 </html>
